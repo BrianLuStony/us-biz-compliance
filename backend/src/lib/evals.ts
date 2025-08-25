@@ -17,7 +17,7 @@ type RuleJSON = {
 const evalPredicate = (p: Predicate, input: BizInput): boolean => {
   if ("custom" in p) {
     switch (p.custom) {
-      case "hasEmployees":   return input.hasEmployees && input.employees > 0;
+      case "hasEmployees":   return input.hasEmployees && (input.employees ?? 0) > 0;
       case "isPublicFacing": return input.publicFacing;
       case "handlesPHI":     return input.handlesPHI;
       case "servesAlcohol":  return input.servesAlcohol;
@@ -45,16 +45,16 @@ const geoMatch = (scope: RuleJSON["scope"]|undefined, input: BizInput) => {
   if (!g) return true;
   if (g.country && g.country !== "US") return false;
   if (g.states?.length && !g.states.includes(input.state)) return false;
-  if (g.cities?.length && !g.cities.map(c=>c.toLowerCase()).includes(input.city.toLowerCase())) return false;
+  if (g.cities?.length && (!input.city || !g.cities.map(c=>c.toLowerCase()).includes(input.city.toLowerCase()))) return false;
   return true;
 };
 const industryMatch = (scope: RuleJSON["scope"]|undefined, input: BizInput) => {
   const ind = scope?.industries;
   if (!ind?.length) return true;
-  return ind.some(i => input.naics.startsWith(i.naicsPrefix));
+  return ind.some(i => typeof input.naics === "string" && input.naics.startsWith(i.naicsPrefix));
 };
 const headcountMatch = (scope: RuleJSON["scope"]|undefined, input: BizInput) => {
-  if (scope?.minEmployees && input.employees < scope.minEmployees) return false;
+  if (scope?.minEmployees && (input.employees ?? 0) < scope.minEmployees) return false;
   return true;
 };
 
