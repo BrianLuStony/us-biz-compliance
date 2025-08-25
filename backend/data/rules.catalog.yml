@@ -1,0 +1,53 @@
+- title: "USCIS: Form I-9 Employment Eligibility Verification"
+  url: "https://www.uscis.gov/i-9"
+  source: "uscis.gov"
+  jurisdiction: "federal"
+  authority: "USCIS (DHS)"
+  scope: { geography: { country: "US" } }
+  conditions: { mode: "all", predicates: [ { custom: "hasEmployees" } ] }
+  requirements:
+    - { action: "Complete Form I-9 within 3 business days of hire" }
+    - { action: "Retain I-9s; present for inspection" }
+  tags: ["hiring","eligibility","form"]
+
+- title: "OSHA: Recordkeeping (Injury & Illness Logs)"
+  url: "https://www.osha.gov/recordkeeping"
+  source: "osha.gov"
+  jurisdiction: "federal"
+  authority: "OSHA (DOL)"
+  scope: { geography: { country: "US" } }
+  conditions: { mode: "all", predicates: [] }
+  requirements:
+    - { action: "Maintain OSHA 300/300A/301 logs if >10 employees & non-exempt industry" }
+  tags: ["safety","recordkeeping"]
+
+- title: "California: CCPA/CPRA Applicability"
+  url: "https://cppa.ca.gov/"
+  source: "cppa.ca.gov"
+  jurisdiction: "state"
+  authority: "California Privacy Protection Agency"
+  scope: { geography: { states: ["CA"] } }
+  conditions:
+    mode: "all"
+    predicates:
+      - { field: "collectsPII", op: "eq", value: true }
+      - { field: "revenueUSD", op: "gte", value: 25000000 }
+  requirements:
+    - { action: "Provide notices & handle consumer rights" }
+    - { action: "Offer Do Not Sell/Share link if applicable" }
+  tags: ["privacy","california"]
+
+- title: "PCI DSS: Cardholder Data Security (Good Practice)"
+  url: "https://www.pcisecuritystandards.org/pci_security/"
+  source: "pcisecuritystandards.org"
+  jurisdiction: "federal"
+  authority: "PCI Security Standards Council"
+  scope: { geography: { country: "US" } }
+  conditions:
+    mode: "all"
+    predicates:
+      - { field: "ecommerce", op: "eq", value: true }
+  requirements:
+    - { action: "Use PCI-compliant processors; don’t store PAN/CVV" }
+    - { action: "Complete SAQ/attestation as required" }
+  tags: ["security","payments","good-practice"]

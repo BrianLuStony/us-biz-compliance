@@ -1,0 +1,77 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---- Enums ----
+enum Jurisdiction {
+  federal
+  state
+  local
+}
+
+// ---- Models ----
+
+model RawDoc {
+  id          String    @id @default(cuid())
+  source      String    // e.g. "osha.gov", "dol.gov", "federalregister.gov"
+  url         String    @unique
+  payload     Json      // whatever you fetched (HTML title, API JSON, metadata)
+  fetchedAt   DateTime  @default(now())
+  processedAt DateTime? // set when transformed into Rule
+  extractor   String?   // name of extractor used, e.g. "osha_poster"
+
+  // Backref: rules created from this RawDoc
+  rules       Rule[]
+
+  @@index([source])
+  @@index([processedAt])
+}
+
+model Rule {
+  id            String        @id @default(cuid())
+  title         String
+  description   String?
+  jurisdiction  Jurisdiction  // federal | state | local
+  authority     String        // "OSHA (DOL)", "HHS", "California Privacy Protection Agency", etc.
+
+  // Rule targeting
+  // scope: { geography:{ country:"US", states:["CA"], cities:["San Francisco"] },
+  //          industries:[ { naicsPrefix:"722", label:"Food Services" } ],
+  //          minEmployees: 1 }
+  scope         Json
+
+  // conditions: { mode:"all"|"any",
+  //               predicates:[ {custom:"hasEmployees"} |
+  //                            {field:"revenueUSD", op:"gte", value:25000000} ] }
+  conditions    Json
+
+  // requirements: [ { action:"Display OSHA 3165 poster", details:"..." }, ... ]
+  requirements  Json
+
+  penalties     String?       // optional free-text
+  // references: [ { label:"OSHA Poster", url:"https://..." }, ... ]
+  references    Json
+
+  // lightweight tagging (e.g., ["privacy","california","food"])
+  tags          String[]
+
+  // provenance
+  sourceDocId   String?
+  sourceDoc     RawDoc?       @relation(fields: [sourceDocId], references: [id], onDelete: SetNull)
+  extractor     String?       // which extractor produced this rule (e.g., "dol_flsa")
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Helpful constraints / indexes
+  @@unique([title, authority])     // avoid duplicate rules from multiple runs
+  @@index([jurisdiction])
+  @@index([authority])
+}
