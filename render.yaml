@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: biz-compliance
+    rootDir: backend
+    env: node
+    buildCommand: "npm ci && npm run build"
+    startCommand: "npm start"
+    healthCheckPath: /health
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false  

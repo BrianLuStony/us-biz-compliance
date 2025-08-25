@@ -7,8 +7,8 @@ import { StatsPanel } from "./components/StatsPanel";
 
 export default function App() {
   const {
-    form, rules, jurData, authData, 
-    setRules, setJurData, setAuthData, setLoading, setError
+    form, rules, jurData, authData, warnings,
+    setRules, setJurData, setAuthData, setLoading, setError, setWarnings
   } = useBizStore();
 
   useEffect(() => {
@@ -27,8 +27,10 @@ export default function App() {
     try {
       const res = await evaluate(form);
       setRules(res.matched);
+      setWarnings(res.warnings ?? []);         // 👈 capture server warnings
     } catch (err: any) {
       setError(err.message || "Failed to evaluate");
+      setWarnings([]);
     } finally {
       setLoading(false);
     }
@@ -49,6 +51,18 @@ export default function App() {
         <div className="md:col-span-2">
           <div className="rounded-2xl bg-white p-4 shadow-sm">
             <h2 className="mb-3 text-base font-medium">Applicable rules</h2>
+
+            {/* Warning banner(s) */}
+            {warnings?.length > 0 && (
+              <div className="mb-3 space-y-2">
+                {warnings.map((w, i) => (
+                  <div key={i} className="rounded border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm text-yellow-800">
+                    ⚠️ {w}
+                  </div>
+                ))}
+              </div>
+            )}
+
             <RuleList rules={rules} />
           </div>
         </div>

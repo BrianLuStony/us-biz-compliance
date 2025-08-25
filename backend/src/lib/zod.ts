@@ -1,12 +1,12 @@
-import { z } from "zod";
+import { optional, z } from "zod";
 
 export const BizInputZ = z.object({
   state: z.string().length(2),
-  city: z.string().min(1),
-  zip: z.string().min(3).max(10),
-  naics: z.string().min(2),
-  employees: z.number().int().min(0),
-  revenueUSD: z.number().int().min(0).optional(),
+  city: z.string().optional(),
+  zip: z.string().optional(),
+  naics: z.string().optional(),
+  employees: z.number().optional(),
+  revenueUSD: z.number().optional(),
   publicFacing: z.boolean(),
   hasEmployees: z.boolean(),
   handlesPHI: z.boolean(),

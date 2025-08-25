@@ -25,11 +25,14 @@ export type RuleDto = {
   references: { label: string; url: string }[]
   tags: string[]
 }
+
 export type EvaluateResponse = {
   input: BizInput
   matched: RuleDto[]
   stats: { poolCount: number; matchedCount: number }
+  warnings?: string[]              // 👈 add this
 }
+
 export type StatsResponse = {
   byJurisdiction: { jurisdiction: string; count: number }[]
   byAuthority: { authority: string; count: number }[]

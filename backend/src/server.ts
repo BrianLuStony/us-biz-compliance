@@ -49,25 +49,44 @@ app.get("/stats", async (_req, res) => {
   });
 });
 
-// Core evaluation
+// Core evaluation (with warnings)
 app.post("/evaluate", async (req, res) => {
   const parsed = BizInputZ.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  if (!parsed.success) {
+    console.log("FAILED PARSE");
+    return res.status(400).json({ error: parsed.error.flatten() });
+  }
   const biz = parsed.data;
 
-  // Pull a reasonable pool; you can add WHERE filters later for speed
+  // Collect non-blocking warnings for incomplete inputs
+  const warnings: string[] = [];
+  if (!biz.naics) {
+    warnings.push("Industry-specific rules may be missing because NAICS was not provided.");
+  }
+  if (!biz.city) {
+    warnings.push("City-specific rules may be missing because City was not provided.");
+  }
+  if (!biz.zip) {
+    warnings.push("ZIP-based rules may be less precise because ZIP was not provided.");
+  }
+
+  // Pull a reasonable pool; later you can add WHERE filters for perf (e.g., by jurisdiction/state)
   const pool = await prisma.rule.findMany({ take: 5000 });
 
-  const matched = pool.filter(r =>
+  const matched = pool.filter((r) =>
     ruleApplies(
-      { jurisdiction: r.jurisdiction as any, scope: r.scope as any, conditions: r.conditions as any },
+      {
+        jurisdiction: r.jurisdiction as any,
+        scope: r.scope as any,
+        conditions: r.conditions as any,
+      },
       biz
     )
   );
 
   res.json({
     input: biz,
-    matched: matched.map(r => ({
+    matched: matched.map((r) => ({
       id: r.id,
       title: r.title,
       jurisdiction: r.jurisdiction,
@@ -75,12 +94,12 @@ app.post("/evaluate", async (req, res) => {
       description: r.description,
       requirements: r.requirements,
       references: r.references,
-      tags: r.tags
+      tags: r.tags,
     })),
-    stats: { poolCount: pool.length, matchedCount: matched.length }
+    stats: { poolCount: pool.length, matchedCount: matched.length },
+    warnings, // 👈 new field
   });
 });
-
 // ---- Single URL: serve the SPA build from /public ----
 const PUBLIC_DIR = path.join(__dirname, "../public"); // copy your frontend build here
 app.use(express.static(PUBLIC_DIR));

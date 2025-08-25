@@ -1,6 +1,8 @@
 import React from "react";
 import { useBizStore } from "../store";
 import type { BizInput } from "../types";
+import { IndustrySelect } from "./IndustrySelect";
+import { US_STATES } from "../constants/states";
 
 const CHECKS: Array<[keyof BizInput, string]> = [
   ["publicFacing", "Public-facing"],
@@ -22,13 +24,28 @@ export function FormPanel({ onSubmit }: { onSubmit: (e: React.FormEvent) => void
       <h2 className="mb-3 text-base font-medium">Your business</h2>
 
       <div className="grid grid-cols-2 gap-3">
-        <LabeledInput label="State" value={form.state || ""} onChange={(v) => setForm({ state: v })} />
+        <label className="mb-1 block text-xs text-slate-600">State</label>
+        <select
+          className="w-full rounded-lg border border-slate-300 bg-white p-2 text-slate-900"
+          value={form.state || ""}
+          onChange={(e) => setForm({ state: e.target.value })}
+          required
+        >
+          <option value="" disabled>Select a state</option>
+          {US_STATES.map((s) => (
+            <option key={s.code} value={s.code}>{s.name}</option>
+          ))}
+        </select>
         <LabeledInput label="City" value={form.city || ""} onChange={(v) => setForm({ city: v })} />
         <LabeledInput label="ZIP" value={form.zip || ""} onChange={(v) => setForm({ zip: v })} />
-        <LabeledInput label="NAICS" value={form.naics || ""} onChange={(v) => setForm({ naics: v })} />
-        <LabeledInput label="Employees" type="number" value={String(form.employees ?? "")}
+          {/* Full-width row for industry/NAICS */}
+        <div className="col-span-2">
+          <IndustrySelect />
+        </div>
+        {/* <LabeledInput label="NAICS" value={form.naics || ""} onChange={(v) => setForm({ naics: v })} /> */}
+        <LabeledInput label="Number of Employees" type="number" value={String(form.employees ?? "")}
           onChange={(v) => setForm({ employees: v ? Number(v) : undefined })} />
-        <LabeledInput label="Revenue (USD)" type="number" value={String(form.revenueUSD ?? "")}
+        <LabeledInput label="Annual Revenue (USD)" type="number" value={String(form.revenueUSD ?? "")}
           onChange={(v) => setForm({ revenueUSD: v ? Number(v) : undefined })} />
       </div>
 
